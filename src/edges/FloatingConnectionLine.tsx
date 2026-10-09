@@ -8,10 +8,16 @@ function FloatingConnectionLine({
   fromPosition,
   toPosition,
   fromNode,
+  fromHandle,
 }: ConnectionLineComponentProps) {
-  if (!fromNode) {
+  if (!fromNode || !fromHandle) {
     return null;
   }
+
+  // linha AZUL quando a conexão SAI do node (handle source / direita);
+  // conexões que saem do target (arrastou o esquerdo pra buscar) = padrão
+  const isOutgoing = fromHandle.type === 'source';
+  const stroke = isOutgoing ? '#3b82f6' : '#222';
 
   // Create a mock target node at the cursor position
   const targetNode = {
@@ -43,7 +49,7 @@ function FloatingConnectionLine({
     <g>
       <path
         fill="none"
-        stroke="#222"
+        stroke={stroke}
         strokeWidth={1.5}
         className="animated"
         d={edgePath}
@@ -53,7 +59,7 @@ function FloatingConnectionLine({
         cy={ty || toY}
         fill="#fff"
         r={3}
-        stroke="#222"
+        stroke={stroke}
         strokeWidth={1.5}
       />
     </g>

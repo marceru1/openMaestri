@@ -11,8 +11,18 @@ type UniversalNodeProps = NodeProps & { data: { label?: string } };
 const UniversalNode = ({ id, data, selected }: UniversalNodeProps) => {
   return (
     <>
-      {/* alças de resize: só quando o card está selecionado */}
-      <NodeResizer isVisible={selected} minWidth={140} minHeight={80} color="#6c8cff" />
+      {/* alças de resize: só quando o card está selecionado.
+          min ABAIXO do tamanho natural (58x34) — se o min for maior,
+          arrastar pra encolher CLAMPA e o node cresce sozinho (bug).
+          max generoso: 4x a viewport típica. */}
+      <NodeResizer
+        isVisible={selected}
+        minWidth={40}
+        minHeight={28}
+        maxWidth={4000}
+        maxHeight={4000}
+        color="#6c8cff"
+      />
       <Handle type="target" position={Position.Left} id="left" />
       <div style={{ userSelect: 'none' }}>{data?.label ?? id}</div>
       <Handle type="source" position={Position.Right} id="right" />

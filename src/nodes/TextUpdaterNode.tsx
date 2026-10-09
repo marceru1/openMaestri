@@ -20,12 +20,13 @@ export function TextUpdaterNode({ id, data }: NodeProps<TextNodeType>) {
       <input
         id="text"
         name="text"
-        value={data.value}
+        value={data.value ?? ''}
         onChange={onChange}
         className="xy-theme__input nodrag"
       />
-      <Handle type="target" position={Position.Top} />
-      <Handle type="source" position={Position.Bottom} />
+      {/* mesma lateral de todos: target esquerda / source direita (bidirecional) */}
+      <Handle type="target" position={Position.Left} id="left" />
+      <Handle type="source" position={Position.Right} id="right" />
     </div>
   );
 }

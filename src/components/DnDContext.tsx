@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-// Contexto de drag-and-drop: qual tipo de node tá sendo arrastado
+// Ferramenta escolhida por CLIQUE na toolbar (não mais drag-and-drop):
+// o card selecionado fica ativo; clique no canvas coloca o node ali.
 type DnDType = 'textUpdater' | 'resizable' | 'biDirectional' | null;
 
 const DnDContext = createContext<[DnDType, (t: DnDType) => void]>([null, () => {}]);

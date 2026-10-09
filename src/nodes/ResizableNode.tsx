@@ -8,7 +8,8 @@ export type ResizableNodeType = Node<{ label: string }, 'resizable'>;
 export function ResizableNode({ data, selected }: NodeProps<ResizableNodeType>) {
   return (
     <>
-      <NodeResizer isVisible={selected} minWidth={140} minHeight={80} color="#6c8cff" />
+      {/* min abaixo do natural (evita o clamp-cresce-sozinho do resizer) */}
+      <NodeResizer isVisible={selected} minWidth={40} minHeight={28} maxWidth={4000} maxHeight={4000} color="#6c8cff" />
       <div className="resizable-node">{data.label}</div>
       <Handle type="target" position={Position.Left} />
       <Handle type="source" position={Position.Right} />

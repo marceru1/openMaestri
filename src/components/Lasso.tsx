@@ -11,7 +11,7 @@ import { useReactFlow, useStore, type Edge, type Rect } from '@xyflow/react';
 type Box = { x: number; y: number; width: number; height: number };
 type MarqueeRect = { left: number; top: number; width: number; height: number };
 
-export function Lasso({ partial }: { partial: boolean }) {
+export function Lasso({ partial, onDone }: { partial: boolean; onDone?: () => void }) {
   const { screenToFlowPosition, setNodes, setEdges } = useReactFlow();
   const { nodeLookup, edges } = useStore((state) => ({
     nodeLookup: state.nodeLookup,
@@ -25,6 +25,7 @@ export function Lasso({ partial }: { partial: boolean }) {
   const nodeBoxes = useRef<Record<string, Box>>({});
   const edgeList = useRef<{ id: string; source: string; target: string }[]>([]);
   const [marquee, setMarquee] = useState<MarqueeRect | null>(null);
+  const drewRect = useRef(false); // marquee realmente desenhado? (uso único)
 
   function snapshot() {
     nodeBoxes.current = {};
@@ -73,6 +74,7 @@ export function Lasso({ partial }: { partial: boolean }) {
     (e.target as HTMLDivElement).setPointerCapture(e.pointerId);
     overlayBox.current = wrapper.current?.getBoundingClientRect() ?? null;
     origin.current = { x: e.clientX, y: e.clientY };
+    drewRect.current = false;
     snapshot();
   }
 
@@ -89,6 +91,7 @@ export function Lasso({ partial }: { partial: boolean }) {
       width: Math.abs(origin.current.x - e.clientX),
       height: Math.abs(origin.current.y - e.clientY),
     });
+    drewRect.current = true;
 
     // hit-test em coords de FLOW (zoom/pan-aware)
     applySelection(rectInFlow(origin.current, { x: e.clientX, y: e.clientY }));
@@ -99,6 +102,9 @@ export function Lasso({ partial }: { partial: boolean }) {
     origin.current = null;
     overlayBox.current = null;
     setMarquee(null); // seleção permanece (o traço que some)
+    // uso único: terminou um traço real → volta pro modo Select
+    if (drewRect.current) onDone?.();
+    drewRect.current = false;
   }
 
   return (

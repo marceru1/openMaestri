@@ -10,13 +10,12 @@ import {
   useReactFlow,
   useEdgesState,
   useNodesState,
-  MarkerType,
   type Connection,
   type Edge,
   type Node,
   type EdgeTypes,
 } from '@xyflow/react';
-import { useCallback, useRef, useState, type MouseEvent as ReactMouseEvent, type DragEvent as HTMLDragEvent } from 'react';
+import { useCallback, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react';
 import { TextUpdaterNode } from './nodes/TextUpdaterNode';
 import { ResizableNode } from './nodes/ResizableNode';
 import BiDirectionalNode from './nodes/BiDirectionalNode';
@@ -39,10 +38,9 @@ const nodeTypes = {
 };
 const edgeTypes: EdgeTypes = { floating: FloatingEdge };
 
-// TODAS as edges: floating (borda mais próxima) + seta sempre (markerEnd)
+// TODAS as edges: floating (borda mais próxima), SEM seta (linha nua)
 const defaultEdgeOptions = {
   type: 'floating',
-  markerEnd: { type: MarkerType.ArrowClosed },
 } as const;
 
 // nodes/edges de teste (teus)
@@ -77,10 +75,12 @@ function Flow() {
   const [menu, setMenu] = useState<MenuState | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const { screenToFlowPosition } = useReactFlow();
-  const [type, setType] = useDnD();
-  // lasso: modo desenha o laço; selection modo interage normal (drag/pan)
-  const [partial, setPartial] = useState(false);
+  const [type, selectType] = useDnD();
+  // lasso: modo desenha o laço (marquee); seleção é sempre PARCIAL
+  // (qualquer node que cruza o rect entra), por isso sem checkbox.
+  // Chip único dentro da toolbar: entra no lasso, termina o traço → Select.
   const [isLassoActive, setIsLassoActive] = useState(false);
+  const setLasso = useCallback((active: boolean) => setIsLassoActive(active), []);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((edgesSnapshot) => addEdge(params, edgesSnapshot)),
@@ -108,16 +108,12 @@ function Flow() {
   const closeMenu = useCallback(() => setMenu(null), []);
 
   // DnD da toolbar: soltou → nasce um node UNIVERSAL do tipo arrastado
-  const onDragOver = useCallback((event: HTMLDragEvent) => {
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-  }, []);
-
-  const onDrop = useCallback(
-    (event: HTMLDragEvent) => {
-      event.preventDefault();
+  // clique no PANE com ferramenta escolhida: nasce o node ali + one-shot
+  // (volta pro modo seleção). Clique simples sem ferramenta = deselect normal.
+  const onPaneClick = useCallback(
+    (event: ReactMouseEvent) => {
+      closeMenu();
       if (!type) return;
-
       const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
       const newNode: Node = {
         id: `${type}-${Date.now()}`,
@@ -131,9 +127,9 @@ function Flow() {
               : { label: 'bidirecional ⇄' },
       };
       setNodes((nds) => [...nds, newNode]);
-      setType(null);
+      selectType(null); // one-shot: consome a escolha
     },
-    [type, screenToFlowPosition, setNodes, setType],
+    [type, screenToFlowPosition, setNodes, selectType, closeMenu],
   );
 
   return (
@@ -148,43 +144,17 @@ function Flow() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
-        onPaneClick={closeMenu}
+        onPaneClick={onPaneClick}
         onNodeContextMenu={onNodeContextMenu}
-        onDragOver={onDragOver}
-        onDrop={onDrop}
         deleteKeyCode={['Backspace', 'Delete']}
         fitView
         colorMode="system"
+        className={type ? 'placing-node' : undefined}
       >
         <Panel position="top-center">
-          <NodeToolbar />
+          <NodeToolbar isLassoActive={isLassoActive} onSetLasso={setLasso} />
         </Panel>
-        <Panel position="top-left" className="lasso-controls">
-          <div className="xy-theme__button-group">
-            <button
-              className={`xy-theme__button ${isLassoActive ? 'active' : ''}`}
-              onClick={() => setIsLassoActive(true)}
-            >
-              Lasso
-            </button>
-            <button
-              className={`xy-theme__button ${!isLassoActive ? 'active' : ''}`}
-              onClick={() => setIsLassoActive(false)}
-            >
-              Select
-            </button>
-          </div>
-          <label>
-            <input
-              type="checkbox"
-              checked={partial}
-              onChange={() => setPartial((p) => !p)}
-              className="xy-theme__checkbox"
-            />
-            parcial
-          </label>
-        </Panel>
-        {isLassoActive && <Lasso partial={partial} />}
+        {isLassoActive && <Lasso partial onDone={() => setLasso(false)} />}
         <Controls />
         <MiniMap />
         <Background variant={BackgroundVariant.Dots} gap={12} size={1} />

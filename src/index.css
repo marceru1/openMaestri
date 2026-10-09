@@ -61,21 +61,76 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: grab;
+  cursor: pointer; /* ferramenta se ESCOLHE (clique); não se arrasta */
   font-size: 12px;
   color: var(--xy-theme-panel-text);
   user-select: none;
 }
 
-.dndnode:active {
-  cursor: grabbing;
+.dndnode.active {
+  background: var(--xy-theme-hover);
+  border-color: var(--xy-theme-hover);
+  color: var(--xy-theme-panel-bg);
 }
 
 .dndnode:hover {
   border-color: var(--xy-theme-hover);
 }
 
-/* ============ Controles do Lasso (topo-esquerda) ============ */
+/* divisor entre os cards de DnD e o chip do laço */
+.node-toolbar__divider {
+  width: 1px;
+  align-self: stretch;
+  margin: 4px 2px;
+  background: var(--xy-theme-subtle-border);
+}
+
+/* chip do laço herdando o visual .dndnode + estado pressionado */
+.node-toolbar__tool {
+  border: none;
+  background: transparent;
+  font: inherit;
+  color: var(--xy-theme-panel-text);
+  gap: 6px;
+}
+
+.node-toolbar__tool.active {
+  background: var(--xy-theme-hover);
+  border-color: var(--xy-theme-hover);
+  color: var(--xy-theme-panel-bg);
+}
+
+/* × no meio da edge (deletar linha) — EdgeLabelRenderer renderiza fora do
+   SVG, por isso precisa de position absolute + translate no transform */
+.button-edge__label {
+  position: absolute;
+  pointer-events: all;
+}
+
+.button-edge__button {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--xy-theme-subtle-border);
+  border-radius: 50%;
+  background: var(--xy-theme-panel-bg);
+  color: var(--xy-theme-panel-text);
+  font-size: 10px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.button-edge__button:hover {
+  background: var(--xy-theme-hover);
+  color: var(--xy-theme-panel-bg);
+  border-color: var(--xy-theme-hover);
+}
+.react-flow.placing-node .react-flow__pane {
+  cursor: copy;
+}
 
 .lasso-controls {
   display: flex;
