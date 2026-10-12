@@ -39,6 +39,12 @@ export default function NodeToolbar({
       >
         ⇄ Bidirecional
       </div>
+      <div
+        className={`dndnode ${selectedType === 'terminal' ? 'active' : ''}`}
+        onClick={() => pick('terminal')}
+      >
+        ⌨️ Terminal
+      </div>
       <div className="node-toolbar__divider" />
       <button
         type="button"

@@ -20,6 +20,7 @@ import { TextUpdaterNode } from './nodes/TextUpdaterNode';
 import { ResizableNode } from './nodes/ResizableNode';
 import BiDirectionalNode from './nodes/BiDirectionalNode';
 import UniversalNode from './nodes/UniversalNode';
+import TerminalNode from './nodes/TerminalNode';
 import FloatingEdge from './edges/FloatingEdge';
 import FloatingConnectionLine from './edges/FloatingConnectionLine';
 import ContextMenu from './components/ContextMenu';
@@ -31,6 +32,7 @@ import { initialElements } from './edges/initialElements';
 // registrado FORA do App pra não re-criar o objeto a cada render (doc)
 const nodeTypes = {
   universal: UniversalNode,
+  terminal: TerminalNode,
   // legados registrados (nodes antigos em initialElements ainda os usam)
   textUpdater: TextUpdaterNode,
   resizable: ResizableNode,
@@ -115,16 +117,21 @@ function Flow() {
       closeMenu();
       if (!type) return;
       const position = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+      // terminal: nasce GRANDE e é type próprio; resto universal
+      const isTerminal = type === 'terminal';
       const newNode: Node = {
         id: `${type}-${Date.now()}`,
-        type: 'universal', // TODO node novo é universal (resize + handles 2 lados)
-        position: { x: position.x - 75, y: position.y - 25 },
+        type: isTerminal ? 'terminal' : 'universal',
+        position: { x: position.x - (isTerminal ? 250 : 75), y: position.y - 25 },
+        style: isTerminal ? { width: 520, height: 360 } : undefined,
         data:
           type === 'textUpdater'
             ? { label: 'novo texto' }
             : type === 'resizable'
               ? { label: 'redimensiona 👋' }
-              : { label: 'bidirecional ⇄' },
+              : isTerminal
+                ? { label: 'terminal' }
+                : { label: 'bidirecional ⇄' },
       };
       setNodes((nds) => [...nds, newNode]);
       selectType(null); // one-shot: consome a escolha
